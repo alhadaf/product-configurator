@@ -1,0 +1,8 @@
+name = "product-configurator-nav"
+type = "admin_link"
+metafields = []
+
+[[extensions.admin_link]]
+name = "Product Configurator"
+url = "/admin/configurator"
+group = "Products"

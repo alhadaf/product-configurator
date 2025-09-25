@@ -73,6 +73,143 @@ app.get('/', (req, res) => {
   res.send('Shopify Product Configurator App is running!');
 });
 
+// Admin interface routes
+app.get('/admin/configurator', shopify.ensureInstalledOnShop(), (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Product Configurator Admin</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #e1e3e5; padding-bottom: 20px; margin-bottom: 30px; }
+        .tabs { display: flex; border-bottom: 1px solid #e1e3e5; margin-bottom: 20px; }
+        .tab { padding: 12px 20px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { border-bottom-color: #008060; color: #008060; }
+        .card { background: white; border: 1px solid #e1e3e5; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stat-card { text-align: center; }
+        .stat-number { font-size: 2.5em; font-weight: bold; color: #008060; }
+        .btn { background: #008060; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #006b4f; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Product Configurator Admin</h1>
+          <p>Manage custom product configurations and designs</p>
+        </div>
+        
+        <div class="tabs">
+          <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+          <div class="tab" onclick="showTab('setup')">Product Setup</div>
+          <div class="tab" onclick="showTab('designs')">Design Review</div>
+          <div class="tab" onclick="showTab('config')">Side Config</div>
+          <div class="tab" onclick="showTab('orders')">Orders</div>
+        </div>
+        
+        <div id="dashboard" class="tab-content">
+          <div class="stats">
+            <div class="card stat-card">
+              <div class="stat-number" id="pending-designs">0</div>
+              <div>Pending Designs</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-number" id="configured-products">0</div>
+              <div>Configured Products</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-number" id="recent-orders">0</div>
+              <div>Recent Orders</div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="setup" class="tab-content" style="display:none;">
+          <div class="card">
+            <h2>Product Setup Wizard</h2>
+            <p>Configure products with print areas, pricing, and decoration methods.</p>
+            <button class="btn" onclick="window.open('/pages/product-setup-wizard', '_blank')">Launch Setup Wizard</button>
+          </div>
+        </div>
+        
+        <div id="designs" class="tab-content" style="display:none;">
+          <div class="card">
+            <h2>Design Review Queue</h2>
+            <div id="designs-list">Loading designs...</div>
+          </div>
+        </div>
+        
+        <div id="config" class="tab-content" style="display:none;">
+          <div class="card">
+            <h2>Product Side Configurations</h2>
+            <p>Set up colors, decoration methods, and upload settings for each product side.</p>
+            <button class="btn" onclick="window.open('/pages/admin-dashboard', '_blank')">Configure Product Sides</button>
+          </div>
+        </div>
+        
+        <div id="orders" class="tab-content" style="display:none;">
+          <div class="card">
+            <h2>Orders with Custom Designs</h2>
+            <div id="orders-list">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+      
+      <script>
+        function showTab(tabName) {
+          // Hide all tab contents
+          document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+          
+          // Show selected tab
+          document.getElementById(tabName).style.display = 'block';
+          event.target.classList.add('active');
+        }
+        
+        // Load dashboard data
+        async function loadDashboardData() {
+          try {
+            const [designsRes, productsRes, ordersRes] = await Promise.all([
+              fetch('/api/admin/designs/pending'),
+              fetch('/api/admin/products'),
+              fetch('/api/admin/orders')
+            ]);
+            
+            const designs = await designsRes.json();
+            const products = await productsRes.json();
+            const orders = await ordersRes.json();
+            
+            document.getElementById('pending-designs').textContent = designs.designs?.length || 0;
+            document.getElementById('configured-products').textContent = products.products?.length || 0;
+            document.getElementById('recent-orders').textContent = orders.orders?.length || 0;
+          } catch (error) {
+            console.error('Error loading dashboard data:', error);
+          }
+        }
+        
+        // Load data on page load
+        loadDashboardData();
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+app.get('/admin/setup-wizard', shopify.ensureInstalledOnShop(), (req, res) => {
+  res.redirect('/pages/product-setup-wizard');
+});
+
+app.get('/admin/design-review', shopify.ensureInstalledOnShop(), (req, res) => {
+  res.redirect('/pages/admin-dashboard');
+});
+
+app.get('/admin/side-config', shopify.ensureInstalledOnShop(), (req, res) => {
+  res.redirect('/pages/admin-dashboard');
+});
+
 // API routes for product configurator
 app.get('/api/products/:id/config', shopify.ensureInstalledOnShop(), async (req, res) => {
   try {
@@ -801,6 +938,164 @@ app.post('/api/admin/products/:id/setup', shopify.ensureInstalledOnShop(), uploa
   } catch (error) {
     console.error('Product setup error:', error);
     res.status(500).json({ error: 'Failed to setup product' });
+  }
+});
+
+// API routes for product side configurations
+app.get('/api/admin/products/:id/side-config', shopify.ensureInstalledOnShop(), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    
+    // Validate required parameters
+    if (!productId) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+    
+    // Use Shopify Admin API to retrieve product side configuration metafields
+    const client = new shopify.api.clients.Rest({ session: res.locals.shopify.session });
+    const productMetafields = await client.get({
+      path: `products/${productId}/metafields`,
+    });
+    
+    // Process metafields to create side configuration
+    const sideConfig = {
+      sides: {}
+    };
+    
+    // Extract relevant metafields for side configurations
+    productMetafields.body.metafields.forEach(metafield => {
+      if (metafield.namespace === 'custom' && metafield.key.startsWith('side_')) {
+        // Parse side configuration metafields
+        const parts = metafield.key.split('_');
+        const side = parts[1]; // front, back, left, right
+        const configType = parts.slice(2).join('_'); // color_options, decoration_methods, upload_section
+        
+        if (!sideConfig.sides[side]) {
+          sideConfig.sides[side] = {
+            colorOptions: [],
+            decorationMethods: [],
+            uploadSection: {}
+          };
+        }
+        
+        // Process different configuration types
+        if (configType === 'color_options') {
+          try {
+            sideConfig.sides[side].colorOptions = JSON.parse(metafield.value);
+          } catch (e) {
+            sideConfig.sides[side].colorOptions = [];
+          }
+        } else if (configType === 'decoration_methods') {
+          try {
+            sideConfig.sides[side].decorationMethods = JSON.parse(metafield.value);
+          } catch (e) {
+            sideConfig.sides[side].decorationMethods = [];
+          }
+        } else if (configType === 'upload_section') {
+          try {
+            sideConfig.sides[side].uploadSection = JSON.parse(metafield.value);
+          } catch (e) {
+            sideConfig.sides[side].uploadSection = {};
+          }
+        }
+      }
+    });
+    
+    res.json(sideConfig);
+  } catch (error) {
+    console.error('Product side configuration retrieval error:', error);
+    res.status(500).json({ error: 'Failed to fetch product side configuration' });
+  }
+});
+
+app.post('/api/admin/products/:id/side-config', shopify.ensureInstalledOnShop(), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { sides } = req.body;
+    
+    // Validate required parameters
+    if (!productId) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+    
+    if (!sides) {
+      return res.status(400).json({ error: 'Side configurations are required' });
+    }
+    
+    // Use Shopify Admin API to save side configurations as metafields
+    const client = new shopify.api.clients.Rest({ session: res.locals.shopify.session });
+    
+    // Prepare metafields to be created/updated
+    const metafields = [];
+    
+    // Process each side configuration
+    Object.keys(sides).forEach(side => {
+      const sideConfig = sides[side];
+      
+      // Add color options metafield
+      metafields.push({
+        namespace: 'custom',
+        key: `side_${side}_color_options`,
+        value: JSON.stringify(sideConfig.colorOptions || []),
+        type: 'json'
+      });
+      
+      // Add decoration methods metafield
+      metafields.push({
+        namespace: 'custom',
+        key: `side_${side}_decoration_methods`,
+        value: JSON.stringify(sideConfig.decorationMethods || []),
+        type: 'json'
+      });
+      
+      // Add upload section metafield
+      metafields.push({
+        namespace: 'custom',
+        key: `side_${side}_upload_section`,
+        value: JSON.stringify(sideConfig.uploadSection || {}),
+        type: 'json'
+      });
+    });
+    
+    // Delete existing side configuration metafields
+    const existingMetafields = await client.get({
+      path: `products/${productId}/metafields`,
+    });
+    
+    const sideMetafieldsToDelete = existingMetafields.body.metafields
+      .filter(mf => mf.namespace === 'custom' && mf.key.startsWith('side_'))
+      .map(mf => mf.id);
+    
+    // Delete existing side metafields
+    for (const metafieldId of sideMetafieldsToDelete) {
+      try {
+        await client.delete({
+          path: `metafields/${metafieldId}`,
+        });
+      } catch (error) {
+        console.error(`Failed to delete metafield ${metafieldId}:`, error);
+      }
+    }
+    
+    // Create new metafields for the product
+    for (const metafield of metafields) {
+      try {
+        await client.post({
+          path: `products/${productId}/metafields`,
+          data: { metafield }
+        });
+      } catch (error) {
+        console.error(`Failed to create metafield ${metafield.key}:`, error);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Product ${productId} side configurations saved successfully`
+    });
+  } catch (error) {
+    console.error('Product side configuration save error:', error);
+    res.status(500).json({ error: 'Failed to save product side configuration' });
   }
 });
 

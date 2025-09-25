@@ -1,0 +1,21 @@
+name = "admin-dashboard"
+type = "admin_action"
+metafields = []
+
+[[extensions.admin_action]]
+name = "Product Setup Wizard"
+url = "/admin/setup-wizard"
+group = "Products"
+description = "Configure products for customization"
+
+[[extensions.admin_action]]
+name = "Design Review"
+url = "/admin/design-review"
+group = "Orders"
+description = "Review and approve customer designs"
+
+[[extensions.admin_action]]
+name = "Side Configurations"
+url = "/admin/side-config"
+group = "Products"
+description = "Configure product sides and decoration methods"

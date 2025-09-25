@@ -1,130 +1,129 @@
-# Shopify Custom Product Configurator
+# Shopify Product Configurator
 
-A complete solution for creating customizable products on Shopify with advanced design capabilities, real-time pricing, and comprehensive admin management.
+A comprehensive Shopify app for product customization with admin sidebar integration.
 
-## Features
+## 🚀 Features
 
-### Customer Features
-- **Design Creation**: Upload and edit designs for multiple print areas
-- **Product Customization**: Select colors, decoration methods, quantities, and sizes
-- **Real-time Pricing**: Dynamic pricing based on decoration method, quantity, colors, and locations
-- **Cart Management**: Design-based item grouping and editing
-- **Account Portal**: Save and manage designs
-- **Design Editor**: Canvas-based design editing with Fabric.js
+- **Admin Sidebar Integration** - Native Shopify admin experience
+- **Product Setup Wizard** - Step-by-step product configuration
+- **Design Editor** - Customer design creation with Fabric.js
+- **Design Review System** - Admin approval workflow
+- **Real-time Pricing** - Dynamic pricing based on customization
+- **Multi-side Design** - Front and back customization
+- **Print Area Constraints** - Accurate design boundaries
+- **Color Detection** - Automatic color analysis
+- **DPI Validation** - Quality assurance for designs
 
-### Admin Features
-- **Design Review**: Approve or reject customer designs
-- **Order Management**: View and process orders
-- **Product Setup**: Configure customizable products with the setup wizard
-- **Template Management**: Create reusable product templates
+## 📁 Project Structure
 
-## Technical Architecture
+```
+├── server.js                    # Express.js backend
+├── shopify.app.toml             # Shopify app configuration
+├── package.json                 # Dependencies and scripts
+├── vercel.json                  # Vercel deployment config
+├── extensions/                  # Shopify admin extensions
+│   ├── admin-nav/               # Admin sidebar navigation
+│   └── admin-dashboard/         # Admin action extensions
+├── web/frontend/                # React admin interface
+└── views/                       # HTML templates
+```
 
-### Frontend
-- Shopify Liquid templates
-- JavaScript with Fabric.js for canvas editing
-- Responsive design
+## 🛠️ Quick Setup
 
-### Backend
-- Node.js with Express.js
-- Shopify API integration
-- Metaobject storage for designs
-- File upload handling with Multer
-- Color detection with ColorThief
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-### Data Storage
-- Shopify Metafields for product configuration
-- Shopify Metaobjects for design storage
-- File system for uploaded images
+### 2. Configure Environment
+```bash
+cp .env.example .env
+# Edit .env with your Shopify credentials
+```
 
-## Installation
+### 3. Deploy to Vercel
+```bash
+vercel --prod
+```
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   cd shopify-product-configurator-app
-   npm install
-   ```
+### 4. Install in Shopify
+```bash
+shopify app install
+```
 
-3. Configure environment variables in `.env`:
-   ```env
-   SHOPIFY_API_KEY=your_api_key_here
-   SHOPIFY_API_SECRET=your_api_secret_here
-   SCOPES=read_products,write_products,read_metaobjects,write_metaobjects
-   HOST=https://your-app-url.vercel.app
-   ```
+## 🎯 Admin Access
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+Access the Product Configurator through:
+- **Shopify Admin Sidebar** → Apps → Product Configurator
+- **URL**: `https://admin.shopify.com/store/your-store/apps/product-configurator`
 
-5. For production deployment, use:
-   ```bash
-   npm start
-   ```
+## 📋 Admin Features
 
-## Shopify Theme Integration
+- **Dashboard** - Overview of designs, products, and orders
+- **Product Setup** - Configure customizable products
+- **Design Review** - Approve/reject customer designs
+- **Side Config** - Set up product sides and decoration methods
+- **Order Management** - Track orders with custom designs
 
-Upload the following files to your Shopify theme:
+## 🔧 Technical Stack
 
-- `sections/design-editor.liquid`
-- `sections/account-designs.liquid`
-- `sections/admin-dashboard.liquid`
-- `sections/product-setup-wizard.liquid`
-- `sections/cart.liquid`
-- `templates/product.customize.json`
-- `templates/page.design-editor.json`
-- `templates/page.account-designs.json`
-- `templates/page.admin-dashboard.json`
-- `templates/page.product-setup-wizard.json`
+- **Backend**: Node.js, Express.js, Shopify API
+- **Frontend**: React, Shopify Polaris, Fabric.js
+- **Storage**: Shopify Metafields/Metaobjects
+- **File Upload**: Multer
+- **Deployment**: Vercel
 
-## API Endpoints
+## 🚀 Deployment
 
-### Public Endpoints
-- `GET /` - Health check
-- `GET /api/health` - Health check
+### Environment Variables
+```env
+SHOPIFY_API_KEY=your_api_key
+SHOPIFY_API_SECRET=your_api_secret
+SCOPES=write_products,read_products,write_orders,read_orders,write_files,read_files
+HOST=https://your-vercel-app.vercel.app
+APPLICATION_URL=https://your-vercel-app.vercel.app
+DEV_STORE_URL=your-dev-store.myshopify.com
+PORT=3000
+NODE_ENV=production
+```
 
-### Authenticated Endpoints
-- `GET /api/products/:id/config` - Get product configuration
-- `POST /api/price/calculate` - Calculate pricing
-- `GET /api/designs` - List designs
-- `GET /api/designs/:id` - Get specific design
-- `POST /api/designs` - Create design
-- `PUT /api/designs/:id` - Update design
+### Vercel Deployment
+1. Connect GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
+
+## 📖 API Endpoints
 
 ### Admin Endpoints
-- `GET /api/admin/designs/pending` - List pending designs
-- `PUT /api/admin/designs/:id/approve` - Approve design
-- `PUT /api/admin/designs/:id/reject` - Reject design
-- `GET /api/admin/orders` - List orders
-- `GET /api/admin/products` - List products
-- `GET /api/admin/templates` - List templates
-- `POST /api/admin/products/:id/setup` - Setup product
+- `GET /admin/configurator` - Main admin dashboard
+- `GET /admin/setup-wizard` - Product setup wizard
+- `GET /admin/design-review` - Design review queue
+- `GET /admin/side-config` - Side configurations
 
-## Deployment
+### Product Configuration
+- `POST /api/admin/products/:id/setup` - Configure product
+- `GET /api/admin/products/:id/sides` - Get product sides
+- `POST /api/admin/products/:id/sides` - Create product side
 
-This app is ready for deployment to Vercel or other Node.js hosting platforms. Follow the deployment guide in `DEPLOYMENT-GUIDE.md` for detailed instructions.
+### Design Management
+- `GET /api/designs/pending` - Get pending designs
+- `POST /api/designs/:id/approve` - Approve design
+- `POST /api/designs/:id/reject` - Reject design
 
-## Documentation
+## 🔐 Security
 
-- `DEPLOYMENT-GUIDE.md` - Complete deployment instructions
-- `TESTING-GUIDE.md` - Comprehensive testing procedures
-- `IMPLEMENTATION-SUMMARY.md` - Technical implementation overview
-- `FINAL-IMPLEMENTATION-SUMMARY.md` - Final project summary
+- Shopify OAuth authentication
+- Secure API endpoints
+- Environment variable protection
+- Input validation and sanitization
 
-## Contributing
+## 📞 Support
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
+For setup assistance:
+1. Check the documentation files
+2. Review environment configuration
+3. Verify Shopify app settings
 
-## License
+---
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please open an issue on the GitHub repository or contact the development team.
+**Built for Shopify stores requiring advanced product customization capabilities.**
